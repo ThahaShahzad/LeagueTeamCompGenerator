@@ -1,7 +1,9 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
+import champions from 'public/LeagueChamps.json'
 
 const Home: NextPage = () => {
+  console.log(champions)
   return (
     <div>
       <Head>
