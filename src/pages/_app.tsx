@@ -1,31 +1,46 @@
-import type { ReactElement, ReactNode } from 'react'
-import type { NextPage } from 'next'
+import { NextPage } from 'next'
 import type { AppProps } from 'next/app'
-
+import { HTML5Backend } from 'react-dnd-html5-backend'
+import { DndProvider } from 'react-dnd'
 import { ChakraProvider, cookieStorageManagerSSR, localStorageManager } from '@chakra-ui/react'
 
+// import RootContext from 'lib/context/RootContext'
 import theme from 'styles/chakraTheme'
+import AppLayout from 'components/layouts/AppLayout'
 // import '@fontsource/open-sans/600.css'
 // import '@fontsource/amiko/700.css'
 
-export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
-  getLayout?: (page: ReactElement) => ReactNode
+type Page<P = {}> = NextPage<P> & {
+  getLayout?: any
 }
 
-type AppPropsWithLayout = AppProps & {
-  Component: NextPageWithLayout
+type Props = AppProps & {
+  Component: Page
   pageProps: any
 }
 
-export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
-  // Use the layout defined at the page level, if available
-  const getLayout = Component.getLayout ?? ((page) => page)
-  const colorModeManager =
-    typeof pageProps.cookies === 'string' ? cookieStorageManagerSSR(pageProps.cookies) : localStorageManager
+type props = {
+  children: React.ReactNode
+}
+const EmptyLayout: React.FC<props> = ({ children }) => {
+  return <>{children}</>
+}
 
-  return getLayout(
+function MyApp({ Component, pageProps }: Props) {
+  const Layout = Component.getLayout || EmptyLayout
+  const colorModeManager = typeof pageProps.cookies === 'string' ? cookieStorageManagerSSR(pageProps.cookies) : localStorageManager
+  return (
+    // <RootContext layout={Component.getLayout}>
     <ChakraProvider theme={theme} colorModeManager={colorModeManager}>
-      <Component {...pageProps} />
+      <DndProvider backend={HTML5Backend}>
+        <AppLayout>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </AppLayout>
+      </DndProvider>
     </ChakraProvider>
+    // </RootContext>
   )
 }
+export default MyApp
